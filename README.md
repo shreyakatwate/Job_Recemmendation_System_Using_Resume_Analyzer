@@ -1,2 +1,2 @@
-# Course and Skill_Recemmendation_System_Using_Resume_Analyzer
+# Course and Skill Recemmendation System Using Resume Analyzer
  
