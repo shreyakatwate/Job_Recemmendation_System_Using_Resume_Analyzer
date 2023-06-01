@@ -15,18 +15,14 @@ import pymysql
 from Courses import ds_course,web_course,android_course,ios_course,uiux_course,resume_videos,interview_videos
 import pafy
 import plotly.express as px
-import nltk
-nltk.download('stopwords')
-nltk.data.path.append('/path/to/nltk_data/')
-import spacy
-nlp = spacy.load("en_core_web_sm")
-import numpy
-import configparser
-pipeline=["tagger","parser","ner"] 
+import youtube_dl
 
 def fetch_yt_video(link):
-    video = pafy.new(link)
-    return video.title
+    ydl_opts = {}
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(link, download=False)
+        video_title = info_dict.get('title', None)
+        return video_title
 
 def get_table_download_link(df,filename,text):
     """Generates a link allowing the data in a given panda dataframe to be downloaded
@@ -91,25 +87,17 @@ def insert_data(name,email,res_score,timestamp,no_of_pages,reco_field,cand_level
 
 st.set_page_config(
    page_title="Smart Resume Analyzer",
-   page_icon='./Logo/SRA_Logo.ico',
+   page_icon='./Logo/logo1(ico).ico',
 )
-def analyze_resume(resume_path):
-    # Create the ResumeParser object with the specified pipeline
-    parser = ResumeParser(resume_path, pipeline=pipeline, spacy_nlp=nlp)
-
-    # Parse the resume and extract the relevant data
-    result = parser.get_extracted_data()
-
-    # Return the extracted data
-    return result
 def run():
     st.title("Smart Resume Analyser")
     st.sidebar.markdown("# Choose User")
     activities = ["Normal User", "Admin"]
     choice = st.sidebar.selectbox("Choose among the given options:", activities)
- 
-    img = Image.open('./Logo/SRA_Logo.jpg')
-    img = img.resize((250,250))
+    # link = '[©Developed by Spidy20](http://github.com/spidy20)'
+    # st.sidebar.markdown(link, unsafe_allow_html=True)
+    img = Image.open('./Logo/logo1.png')
+    img = img.resize((600,250))
     st.image(img)
 
     # Create the DB
@@ -256,10 +244,6 @@ def run():
                 cur_time = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
                 timestamp = str(cur_date+'_'+cur_time)
 
-                analyzed_resume = analyze_resume(resume_text)
-
-                print(analyzed_resume)
-
                 ### Resume writing recommendation
                 st.subheader("**Resume Tips & Ideas💡**")
                 resume_score = 0
@@ -343,8 +327,8 @@ def run():
         ad_user = st.text_input("Username")
         ad_password = st.text_input("Password", type='password')
         if st.button('Login'):
-            if ad_user == 'admin' and ad_password == 'admin123':
-                st.success("Welcome Admin!")
+            if ad_user == 'yash' and ad_password == '123':
+                st.success("Welcome Yash")
                 # Display Data
                 cursor.execute('''SELECT*FROM user_data''')
                 data = cursor.fetchall()
@@ -358,23 +342,25 @@ def run():
                 query = 'select * from user_data;'
                 plot_data = pd.read_sql(query, connection)
 
-                ## Pie chart for predicted field recommendations
+                # Pie chart for predicted field recommendations
                 labels = plot_data.Predicted_Field.unique()
-                print(labels)
                 values = plot_data.Predicted_Field.value_counts()
-                print(values)
+                data = pd.DataFrame({'labels': labels, 'count': values})
                 st.subheader("📈 **Pie-Chart for Predicted Field Recommendations**")
-                fig = px.pie(df, values=values, names=labels, title='Predicted Field according to the Skills')
+                fig = px.pie(data, values='count', names='labels', title='Predicted Field according to the Skills')
                 st.plotly_chart(fig)
 
-                ### Pie chart for User's👨‍💻 Experienced Level
+                # Pie chart for User's👨‍💻 Experienced Level
                 labels = plot_data.User_level.unique()
                 values = plot_data.User_level.value_counts()
-                st.subheader("📈 ** Pie-Chart for User's👨‍💻 Experienced Level**")
-                fig = px.pie(df, values=values, names=labels, title="Pie-Chart📈 for User's👨‍💻 Experienced Level")
+                data = pd.DataFrame({'labels': labels, 'count': values})
+                st.subheader("📈 **Pie-Chart for User's👨‍💻 Experienced Level**")
+                fig = px.pie(data, values='count', names='labels',title="Pie-Chart📈 for User's👨‍💻 Experienced Level")
                 st.plotly_chart(fig)
+
 
 
             else:
                 st.error("Wrong ID & Password Provided")
+
 run()
