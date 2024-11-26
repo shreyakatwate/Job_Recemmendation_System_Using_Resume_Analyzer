@@ -1,2 +1,2 @@
-# Course and Skill Recemmendation System Using Resume Analyzer
+# Job Recommendation using Resume Analyzer (Web App)
  
